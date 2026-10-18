@@ -1,12 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { Branch } from "./types";
 
 interface BranchContextType {
   branches: Branch[];
   currentBranch: Branch | null;
   setCurrentBranch: (branch: Branch) => void;
+  refreshBranches: () => Promise<void>;
   isLoading: boolean;
   isBranchModalOpen: boolean;
   setIsBranchModalOpen: (open: boolean) => void;
@@ -22,37 +23,42 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isBranchModalOpen, setIsBranchModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    async function loadBranches() {
-      try {
-        const res = await fetch("/api/branches");
-        if (res.ok) {
-          const data = await res.json();
-          setBranches(data.branches || []);
+  const loadBranches = useCallback(async () => {
+    try {
+      const res = await fetch("/api/branches", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        const activeList: Branch[] = data.branches || [];
+        setBranches(activeList);
 
-          // Check if previously saved branch exists
-          const savedCode = localStorage.getItem(BRANCH_STORAGE_KEY);
-          if (savedCode) {
-            const found = (data.branches || []).find((b: Branch) => b.code === savedCode);
-            if (found) {
-              setCurrentBranchState(found);
-              return;
-            }
-          }
-
-          // Default to first branch (e.g. HCM Q1)
-          if (data.branches && data.branches.length > 0) {
-            setCurrentBranchState(data.branches[0]);
+        // Check if previously saved branch exists and is still active
+        const savedCode = localStorage.getItem(BRANCH_STORAGE_KEY);
+        if (savedCode) {
+          const found = activeList.find((b: Branch) => b.code === savedCode);
+          if (found) {
+            setCurrentBranchState(found);
+            return;
           }
         }
-      } catch (e) {
-        console.error("Failed to load branches", e);
-      } finally {
-        setIsLoading(false);
+
+        // If saved branch was deactivated or not set, default to first active branch
+        if (activeList.length > 0) {
+          setCurrentBranchState(activeList[0]);
+          localStorage.setItem(BRANCH_STORAGE_KEY, activeList[0].code);
+        } else {
+          setCurrentBranchState(null);
+        }
       }
+    } catch (e) {
+      console.error("Failed to load branches", e);
+    } finally {
+      setIsLoading(false);
     }
-    loadBranches();
   }, []);
+
+  useEffect(() => {
+    loadBranches();
+  }, [loadBranches]);
 
   const setCurrentBranch = (branch: Branch) => {
     setCurrentBranchState(branch);
@@ -69,6 +75,7 @@ export function BranchProvider({ children }: { children: React.ReactNode }) {
         branches,
         currentBranch,
         setCurrentBranch,
+        refreshBranches: loadBranches,
         isLoading,
         isBranchModalOpen,
         setIsBranchModalOpen,
@@ -86,4 +93,3 @@ export function useBranch() {
   }
   return context;
 }
-

@@ -17,9 +17,10 @@ import {
 import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/ui/ProductCard";
 import HomeClientSection from "@/components/home/HomeClientSection";
+import HomeBranchesSection from "@/components/branch/HomeBranchesSection";
 import { formatVnd } from "@/lib/utils";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const categories = await prisma.category.findMany({
@@ -117,7 +118,9 @@ export default async function HomePage() {
                   <span className="text-xs text-gray-500 font-medium">Báo rõ calo & gam</span>
                 </div>
                 <div>
-                  <span className="text-xl sm:text-2xl font-black text-gray-900 block">3 Chi nhánh</span>
+                  <span className="text-xl sm:text-2xl font-black text-gray-900 block">
+                    {branches.length} Chi nhánh
+                  </span>
                   <span className="text-xs text-gray-500 font-medium">Giao nhanh 30 phút</span>
                 </div>
               </div>
@@ -353,37 +356,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 6. Branches Locator Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-bold text-brand-600 uppercase tracking-wider block">
-            Hệ thống cửa hàng
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mt-1">
-            Chi Nhánh VieFood Đang Phục Vụ
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {branches.map((b) => (
-            <div
-              key={b.id}
-              className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition space-y-4"
-            >
-              <div className="flex items-center space-x-2 text-brand-600">
-                <MapPin className="w-5 h-5 flex-shrink-0" />
-                <h3 className="font-bold text-gray-900 text-base">{b.name}</h3>
-              </div>
-              <p className="text-xs text-gray-600 leading-relaxed">{b.address}</p>
-              <div className="text-xs text-gray-500 pt-2 border-t border-gray-100 space-y-1">
-                <div>Giờ hoạt động: <span className="font-semibold text-gray-800">{b.openHours}</span></div>
-                <div>Hotline: <span className="font-semibold text-gray-800">{b.phone}</span></div>
-                <div>Phí giao chuẩn: <span className="font-semibold text-brand-700">{formatVnd(b.baseShippingFee)}</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* 6. Branches Locator Section (Dynamic & Live) */}
+      <HomeBranchesSection initialBranches={branches as any} />
 
       {/* 7. Real Customer Reviews Section */}
       {reviews.length > 0 && (

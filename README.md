@@ -117,3 +117,4 @@ npm run start
 1. **Cổng thanh toán & Webhook ngân hàng:** Tích hợp Webhook đối soát tài khoản ngân hàng thực tế (Cass / PayOS / VietQR Open API) để tự động chuyển trạng thái đơn sang "Đã thanh toán".
 2. **Zalo ZNS / SMS OTP:** Cấu hình Zalo Business ZNS API khi gửi thông báo đơn hàng cho khách.
 3. **AI Chatbot API:** Có thể thêm biến môi trường `GEMINI_API_KEY` nếu muốn trợ lý AI trò chuyện chuyên sâu hơn ngoài kho tri thức hiện tại.
+

@@ -6,7 +6,13 @@ import { useBranch } from "@/lib/branch-context";
 import { formatVnd } from "@/lib/utils";
 
 export default function BranchModal() {
-  const { branches, currentBranch, setCurrentBranch, isBranchModalOpen, setIsBranchModalOpen } = useBranch();
+  const { branches, currentBranch, setCurrentBranch, refreshBranches, isBranchModalOpen, setIsBranchModalOpen } = useBranch();
+
+  React.useEffect(() => {
+    if (isBranchModalOpen) {
+      refreshBranches();
+    }
+  }, [isBranchModalOpen, refreshBranches]);
 
   if (!isBranchModalOpen) return null;
 

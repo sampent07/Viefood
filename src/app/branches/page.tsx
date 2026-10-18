@@ -3,11 +3,12 @@ import { MapPin, Phone, Clock, Truck, ShieldCheck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatVnd } from "@/lib/utils";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function BranchesPage() {
   const branches = await prisma.branch.findMany({
     where: { isActive: true },
+    orderBy: { createdAt: "asc" },
     include: {
       _count: { select: { orders: true } },
     },
@@ -20,7 +21,7 @@ export default async function BranchesPage() {
           Hệ thống cửa hàng
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
-          Danh Sách Chi Nhánh VieFood
+          Danh Sách Chi Nhánh VieFood ({branches.length} Chi nhánh)
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
           Mỗi chi nhánh được trang bị bếp tiêu chuẩn vệ sinh an toàn thực phẩm, chuẩn bị món ăn tươi nóng và giao nhanh trong bán kính 15km.

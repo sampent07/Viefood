@@ -158,13 +158,15 @@ model Order {
   discountAmount  Int                  @default(0)
   totalAmount     Int
   status          String               @default("NEW") // NEW, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED
-  paymentMethod   String               @default("COD") // COD, BANK_TRANSFER
-  paymentStatus   String               @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
-  cancelReason    String?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  items           OrderItem[]
-  redemptions     VoucherRedemption[]
+  paymentMethod        String               @default("COD") // COD, BANK_TRANSFER
+  paymentStatus        String               @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  customerTransferred  Boolean              @default(false)
+  transferredAt        DateTime?
+  cancelReason         String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  items                OrderItem[]
+  redemptions          VoucherRedemption[]
 }
 
 model OrderItem {

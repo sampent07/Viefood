@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const branches = await prisma.branch.findMany({
@@ -8,10 +10,18 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json({
-      success: true,
-      branches,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: branches.length,
+        branches,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching branches:", error);
     return NextResponse.json(
@@ -20,4 +30,3 @@ export async function GET() {
     );
   }
 }
-
