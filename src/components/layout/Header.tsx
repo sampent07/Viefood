@@ -259,9 +259,10 @@ export default function Header() {
           {/* Right Action Icons: Branch, User, Cart */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             <div
-              className="flex items-center rounded-full border border-gray-200 bg-gray-50 p-0.5"
+              className="flex shrink-0 items-center rounded-full border border-gray-200 bg-gray-50 p-0.5"
               role="group"
               aria-label="Language"
+              title="Switch language"
             >
               <button
                 type="button"
