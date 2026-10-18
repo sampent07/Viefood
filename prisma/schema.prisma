@@ -1,0 +1,246 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String?        @unique
+  phone        String?        @unique
+  name         String
+  passwordHash String
+  role         String         @default("CUSTOMER") // CUSTOMER, ADMIN, STAFF
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  addresses    Address[]
+  orders       Order[]
+}
+
+model Address {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  receiverName String
+  phone        String
+  province     String   @default("TP. Hồ Chí Minh")
+  district     String
+  ward         String
+  street       String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id                  String              @id @default(uuid())
+  sku                 String              @unique
+  slug                String              @unique
+  name                String
+  categorySlug        String
+  category            Category            @relation(fields: [categorySlug], references: [slug])
+  description         String
+  priceVnd            Int?                // null if price is updating or demo
+  estimatedWeightG    Int?                // Khối lượng hộp / khẩu phần (g hoặc ml)
+  servingVolumeMl     Int?                // Thể tích nếu là đồ uống (ml)
+  caloriesKcal        Int?                // Năng lượng tham khảo (kcal)
+  nutritionVerified   Boolean             @default(false)
+  imageUrl            String
+  badges              String?             // JSON or comma separated: "BEST_SELLER,NEW,HEALTHY"
+  isAvailable         Boolean             @default(true)
+  sortOrder           Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  ingredients         ProductIngredient[]
+  branchProducts      BranchProduct[]
+  packageItems        PackageItem[]
+}
+
+model ProductIngredient {
+  id           String   @id @default(uuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name         String
+  amount       Float
+  unit         String   // g, ml, quả, thìa, thanh
+  caloriesKcal Int?
+  weightState  String?  // sống, chín, để ráo
+}
+
+model Branch {
+  id                   String                 @id @default(uuid())
+  code                 String                 @unique
+  name                 String
+  address              String
+  phone                String
+  openHours            String                 @default("07:00 - 21:00")
+  deliveryRadiusKm     Float                  @default(15.0)
+  baseShippingFee      Int                    @default(20000)
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  branchProducts       BranchProduct[]
+  orders               Order[]
+  vouchers             Voucher[]
+  consultationRequests ConsultationRequest[]
+}
+
+model BranchProduct {
+  id             String   @id @default(uuid())
+  branchId       String
+  branch         Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  isAvailable    Boolean  @default(true)
+  customPriceVnd Int?
+  stockQuantity  Int      @default(99)
+
+  @@unique([branchId, productId])
+}
+
+model Package {
+  id               String        @id @default(uuid())
+  code             String        @unique
+  slug             String        @unique
+  name             String
+  type             String        // FULL_SET, THREE_DAYS, WEEKLY, MONTHLY
+  description      String
+  priceVnd         Int
+  originalPriceVnd Int?
+  daysCount        Int           @default(1)
+  mealsPerDay      Int           @default(1)
+  totalBoxes       Int           @default(1)
+  avgKcalPerDay    Int?
+  imageUrl         String
+  isActive         Boolean       @default(true)
+  items            PackageItem[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model PackageItem {
+  id        String   @id @default(uuid())
+  packageId String
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  dayIndex  Int      @default(1)
+  mealType  String   @default("LUNCH") // BREAKFAST, LUNCH, DINNER, SNACK
+  quantity  Int      @default(1)
+}
+
+model Order {
+  id              String               @id @default(uuid())
+  orderCode       String               @unique
+  userId          String?
+  user            User?                @relation(fields: [userId], references: [id])
+  receiverName    String
+  receiverPhone   String
+  branchId        String
+  branch          Branch               @relation(fields: [branchId], references: [id])
+  deliveryAddress String
+  deliveryDate    String?
+  deliverySlot    String?
+  orderNote       String?
+  subtotal        Int
+  shippingFee     Int                  @default(0)
+  discountAmount  Int                  @default(0)
+  totalAmount     Int
+  status          String               @default("NEW") // NEW, CONFIRMED, PREPARING, DELIVERING, COMPLETED, CANCELLED
+  paymentMethod   String               @default("COD") // COD, BANK_TRANSFER
+  paymentStatus   String               @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  cancelReason    String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  items           OrderItem[]
+  redemptions     VoucherRedemption[]
+}
+
+model OrderItem {
+  id               String   @id @default(uuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        String
+  productName      String
+  productSku       String
+  priceAtPurchase  Int
+  quantity         Int
+  itemNote         String?
+  weightSnapshot   Int?
+  caloriesSnapshot Int?
+  imageUrl         String?
+}
+
+model Voucher {
+  id               String              @id @default(uuid())
+  code             String              @unique
+  title            String
+  discountType     String              // PERCENT, FIXED, FREE_SHIP
+  discountValue    Int
+  minOrderValue    Int                 @default(0)
+  maxDiscountValue Int?
+  startDate        DateTime?
+  endDate          DateTime?
+  usageLimit       Int                 @default(1000)
+  usedCount        Int                 @default(0)
+  branchId         String?
+  branch           Branch?             @relation(fields: [branchId], references: [id])
+  categorySlug     String?
+  isActive         Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  redemptions      VoucherRedemption[]
+}
+
+model VoucherRedemption {
+  id              String   @id @default(uuid())
+  voucherId       String
+  voucher         Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId          String?
+  discountApplied Int
+  redeemedAt      DateTime @default(now())
+}
+
+model ConsultationRequest {
+  id                   String   @id @default(uuid())
+  requestCode          String   @unique
+  fullName             String
+  phone                String
+  zalo                 String?
+  packageInterest      String   @default("Gói tháng")
+  branchId             String?
+  branch               Branch?  @relation(fields: [branchId], references: [id])
+  deliveryArea         String?
+  budget               String?
+  dietaryGoals         String?
+  preferredContactTime String?
+  notes                String?
+  consentAgreed        Boolean  @default(true)
+  status               String   @default("NEW") // NEW, CONTACTING, CONSULTED, CONVERTED, CANCELLED
+  staffNote            String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  productId    String
+  customerName String
+  rating       Int      @default(5)
+  comment      String
+  isVerified   Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
