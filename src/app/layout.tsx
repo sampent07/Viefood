@@ -9,6 +9,7 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import BranchModal from "@/components/branch/BranchModal";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import ToastNotifier from "@/components/ui/ToastNotifier";
+import { LanguageProvider } from "@/lib/language-context";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
@@ -26,17 +27,19 @@ export default function RootLayout({
   return (
     <html lang="vi" className="scroll-smooth">
       <body className={`${inter.className} min-h-screen flex flex-col antialiased`}>
-        <BranchProvider>
-          <CartProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <CartDrawer />
-            <BranchModal />
-            <ChatbotWidget />
-            <ToastNotifier />
-          </CartProvider>
-        </BranchProvider>
+        <LanguageProvider>
+          <BranchProvider>
+            <CartProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <BranchModal />
+              <ChatbotWidget />
+              <ToastNotifier />
+            </CartProvider>
+          </BranchProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

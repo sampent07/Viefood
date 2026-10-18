@@ -20,12 +20,14 @@ import {
 import { useCart } from "@/lib/cart-context";
 import { useBranch } from "@/lib/branch-context";
 import { formatVnd } from "@/lib/utils";
+import { useLanguage } from "@/lib/language-context";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { itemCount, setIsCartDrawerOpen } = useCart();
   const { currentBranch, setIsBranchModalOpen } = useBranch();
+  const { language, setLanguage } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -256,6 +258,29 @@ export default function Header() {
 
           {/* Right Action Icons: Branch, User, Cart */}
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <div
+              className="flex items-center rounded-full border border-gray-200 bg-gray-50 p-0.5"
+              role="group"
+              aria-label="Language"
+            >
+              <button
+                type="button"
+                onClick={() => setLanguage("vi")}
+                aria-pressed={language === "vi"}
+                className={`rounded-full px-2 py-1 text-[11px] font-bold transition ${language === "vi" ? "bg-white text-brand-700 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+              >
+                VI
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                aria-pressed={language === "en"}
+                className={`rounded-full px-2 py-1 text-[11px] font-bold transition ${language === "en" ? "bg-white text-brand-700 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+              >
+                EN
+              </button>
+            </div>
+
             {/* Mobile Branch Button */}
             <button
               onClick={() => setIsBranchModalOpen(true)}
